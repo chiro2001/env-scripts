@@ -36,10 +36,31 @@ def load_all_gcpt(gcpt_path, json_path, server_num, threads, state_filter=None, 
   for benchspec in data:
     #if "gcc" not in benchspec:# or "hmmer" in benchspec:
     #  continue
-    for point in data[benchspec]:
-      weight = data[benchspec][point]
+    points = data[benchspec]
+    new_mode = 'points' in data[benchspec]
+    if new_mode:
+      points = data[benchspec]['points']
+    for point_e in points:
+      point = point_e
+      if new_mode:
+        point = str(int(point_e) * (10**7))
+      weight = points[point_e]
       hour = get_eval_hour(benchspec, point, weight)
       gcpt = GCPT(gcpt_path, perf_base_path, benchspec, point, weight, hour)
+      if new_mode:
+        # example: checkpoint-0-0-0/astar_biglakes/31/_31_0.016784_.gz
+        gcpt.get_str = lambda this: "/".join([
+          this.benchspec,
+          this.point.replace('0' * 7, '')])
+        def gcpt_get_bin_path(this):
+          dir_name = this.__str__()
+          bin_dir = os.path.join(this.bin_base_dir, dir_name)
+          bin_file = list(os.listdir(bin_dir))
+          assert(len(bin_file) == 1)
+          bin_path = os.path.join(bin_dir, bin_file[0])
+          assert(os.path.isfile(bin_path))
+          return bin_path
+        gcpt.get_bin_path = lambda: gcpt_get_bin_path(gcpt)
       if state_filter is None and perf_filter is None:
         all_gcpt.append(gcpt)
         continue

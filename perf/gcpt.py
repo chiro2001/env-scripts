@@ -20,13 +20,16 @@ class GCPT(object):
     self.ipc = -1
     self.num_seconds = -1
     self.waveform = []
+    self.get_str = lambda this: "_".join([this.benchspec, this.point, str(this.weight)])
+    self.get_bin_path = lambda: self.get_bin_path_default()
     self.res_dir = os.path.join(perf_base_dir, self.__str__())
     self.eval_run_hours = eval_run_hours
 
   def __str__(self):
-    return "_".join([self.benchspec, self.point, str(self.weight)])
+    # return "_".join([self.benchspec, self.point, str(self.weight)])
+    return self.get_str(self)
 
-  def get_bin_path(self):
+  def get_bin_path_default(self):
     dir_name = self.__str__()
     bin_dir = os.path.join(self.bin_base_dir, dir_name, "0")
     bin_file = list(os.listdir(bin_dir))

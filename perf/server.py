@@ -17,7 +17,7 @@ class Server(object):
     self.failed_tests = []
     self.success_tests = []
     self.pending_proc = []
-    self.remote_cmd = ["ssh", f"{self.username}@{self.ip}"]
+    self.remote_cmd = ["ssh", "-oStrictHostKeyChecking=no", "-oRemoteCommand=none", f"{self.username}@{self.ip}"]
 
   def pending_tests(self):
     self.check_running()
@@ -34,9 +34,8 @@ class Server(object):
   def remote_get_free_cores(self, threads):
     pwd = os.path.dirname(os.path.abspath(__file__))
     cmd = ["python3", f"{pwd}/get_free_core.py", f"{threads}"]
-    ssh_cmd_str = " ".join(self.remote_cmd + cmd)
-    proc = os.popen(ssh_cmd_str)
-    result = proc.read().strip()
+    proc = subprocess.Popen(self.remote_cmd + cmd, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    result = proc.stdout.read().strip().decode()
     result = ast.literal_eval(result)
     return result
 
